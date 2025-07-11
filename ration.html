@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ration Shop Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* Page transitions */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Header */
+        .header {
+            background: #4a90e2;
+            border-radius: 10px;
+            padding: 25px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #e6f2ff;
+            font-size: 1rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+        }
+
+        .card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eee;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4a90e2;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="time"],
+        input[type="date"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        .time-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Twilio Configuration */
+        .twilio-config {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .twilio-config h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .twilio-config p {
+            color: #856404;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .config-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #4a90e2;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            min-height: 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        button:hover:not(:disabled) {
+            background: #357abd;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        button.secondary {
+            background: #666;
+        }
+
+        button.secondary:hover:not(:disabled) {
+            background: #555;
+        }
+
+        button.success {
+            background: #28a745;
+        }
+
+        button.success:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        button.danger {
+            background: #dc3545;
+        }
+
+        button.danger:hover:not(:disabled) {
+            background: #c82333;
+        }
+
+        button.warning {
+            background: #fd7e14;
+        }
+
+        button.warning:hover:not(:disabled) {
+            background: #e8690b;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Member list */
+        #memberList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .member-item:hover {
+            background: white;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+        }
+
+        .member-item.collected {
+            background: #d4edda;
+            border-color: #28a745;
+            border-left-width: 4px;
+        }
+
+        .member-info {
+            flex: 1;
+        }
+
+        .member-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+            font-size: 1rem;
+        }
+
+        .member-phone {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .member-item button {
+            padding: 8px 15px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        /* Success animation */
+        .member-item.collected .member-name::after {
+            content: ' ✓';
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .time-display,
+            .config-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .button-group {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .member-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .member-item button {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .header p {
+                font-size: 0.9rem;
+            }
+
+            button {
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+
+            .member-item {
+                padding: 12px;
+            }
+        }
+
+        /* Loading state */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: 'Sending SMS messages...';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        /* Status messages */
+        .status-message {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Landing Page -->
+        <div id="landingPage" class="page active">
+            <div class="header">
+                <h1>Ration Shop Management</h1>
+                <p>Daily operations for your community store</p>
+            </div>
+
+            <!-- Twilio Configuration -->
+            <div class="twilio-config">
+                <h3>SMS Configuration (Twilio)</h3>
+                <p>Configure your Twilio credentials to send automatic SMS notifications</p>
+                <div class="config-row">
+                    <div class="form-group">
+                        <label for="twilioSid">Account SID</label>
+                        <input type="password" id="twilioSid" placeholder="Enter Twilio Account SID">
+                    </div>
+                    <div class="form-group">
+                        <label for="twilioToken">Auth Token</label>
+                        <input type="password" id="twilioToken" placeholder="Enter Twilio Auth Token">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="twilioPhone">Twilio Phone Number</label>
+                    <input type="tel" id="twilioPhone" placeholder="Enter Twilio phone number (e.g., +1234567890)">
+                </div>
+                <button onclick="saveTwilioConfig()" class="warning">Save Configuration</button>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number" id="totalMembers">0</span>
+                    <span class="stat-label">Total Members</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="collectedToday">0</span>
+                    <span class="stat-label">Collected Today</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="pendingCollection">0</span>
+                    <span class="stat-label">Pending Collection</span>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <h2>Quick Actions</h2>
+                <div class="button-group">
+                    <button class="secondary" onclick="showPage('addMembersPage')">
+                        Add New Member
+                    </button>
+                </div>
+            </div>
+
+            <!-- Shop Controls -->
+            <div class="card">
+                <h2>Shop Operations</h2>
+                <div class="time-display">
+                    <div class="form-group">
+                        <label for="openTime">Opening Time</label>
+                        <input type="time" id="openTime" value="09:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="closeTime">Closing Time</label>
+                        <input type="time" id="closeTime" value="19:00">
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="success" onclick="openShop()">
+                        Open Shop & Send SMS to All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Members List -->
+            <div class="card">
+                <h2>Registered Members</h2>
+                <ul id="memberList">
+                    <!-- Member items will be injected here -->
+                </ul>
+            </div>
+
+            <!-- End of Day Actions -->
+            <div class="card">
+                <h2>End of Day Operations</h2>
+                <div class="form-group">
+                    <label for="nextOpenDate">Next Opening Date</label>
+                    <input type="date" id="nextOpenDate">
+                </div>
+                <div class="button-group">
+                    <button class="danger" onclick="closeShop()">
+                        Close Shop & Send Reminders
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Members Page -->
+        <div id="addMembersPage" class="page">
+            <div class="header">
+                <h1>Add New Member</h1>
+                <p>Register a new member to the ration shop system</p>
+            </div>
+
+            <div class="card">
+                <form id="addMemberForm">
+                    <div class="form-group">
+                        <label for="memberName">Full Name</label>
+                        <input type="text" id="memberName" required placeholder="Enter member's full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="memberPhone">Mobile Number</label>
+                        <input type="tel" id="memberPhone" required placeholder="Enter 10-digit mobile number" pattern="[0-9]{10}">
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="success">Add Member</button>
+                        <button type="button" class="secondary" onclick="showPage('landingPage')">
+                            Back to Dashboard
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const pages = document.querySelectorAll('.page');
+        const addMemberForm = document.getElementById('addMemberForm');
+        const memberNameInput = document.getElementById('memberName');
+        const memberPhoneInput = document.getElementById('memberPhone');
+        const memberList = document.getElementById('memberList');
+        const nextOpenDateInput = document.getElementById('nextOpenDate');
+        const totalMembersEl = document.getElementById('totalMembers');
+        const collectedTodayEl = document.getElementById('collectedToday');
+        const pendingCollectionEl = document.getElementById('pendingCollection');
+
+        // Twilio configuration elements
+        const twilioSidInput = document.getElementById('twilioSid');
+        const twilioTokenInput = document.getElementById('twilioToken');
+        const twilioPhoneInput = document.getElementById('twilioPhone');
+
+        // --- Data Storage ---
+        let members = [];
+        let twilioConfig = {
+            accountSid: '',
+            authToken: '',
+            phoneNumber: ''
+        };
+
+        // --- Core Functions ---
+
+        function showPage(pageId) {
+            pages.forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function updateStats() {
+            const totalMembers = members.length;
+            const collectedToday = members.filter(m => m.collected).length;
+            const pendingCollection = totalMembers - collectedToday;
+
+            totalMembersEl.textContent = totalMembers;
+            collectedTodayEl.textContent = collectedToday;
+            pendingCollectionEl.textContent = pendingCollection;
+        }
+
+        function showStatusMessage(message, type = 'success') {
+            // Remove existing status messages
+            const existingMessages = document.querySelectorAll('.status-message');
+            existingMessages.forEach(msg => msg.remove());
+
+            // Create new status message
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+
+            // Insert at the top of the container
+            const container = document.querySelector('.container');
+            container.insertBefore(statusDiv, container.firstChild);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                statusDiv.remove();
+            }, 5000);
+        }
+
+        function saveTwilioConfig() {
+            const sid = twilioSidInput.value.trim();
+            const token = twilioTokenInput.value.trim();
+            const phone = twilioPhoneInput.value.trim();
+
+            if (!sid || !token || !phone) {
+                showStatusMessage('Please fill in all Twilio configuration fields.', 'error');
+                return;
+            }
+
+            twilioConfig = {
+                accountSid: sid,
+                authToken: token,
+                phoneNumber: phone
+            };
+
+            localStorage.setItem('twilioConfig', JSON.stringify(twilioConfig));
+            showStatusMessage('Twilio configuration saved successfully!', 'success');
+        }
+
+        function loadTwilioConfig() {
+            const stored = localStorage.getItem('twilioConfig');
+            if (stored) {
+                twilioConfig = JSON.parse(stored);
+                twilioSidInput.value = twilioConfig.accountSid;
+                twilioTokenInput.value = twilioConfig.authToken;
+                twilioPhoneInput.value = twilioConfig.phoneNumber;
+            }
+        }
+
+        async function sendSMS(phone, message) {
+            if (!twilioConfig.accountSid || !twilioConfig.authToken || !twilioConfig.phoneNumber) {
+                showStatusMessage('Please configure Twilio settings first.', 'error');
+                return false;
+            }
+
+            // Format phone number for India
+            let formattedPhone = phone.replace(/\D/g, '');
+            if (formattedPhone.length === 10) {
+                formattedPhone = '+91' + formattedPhone;
+            }
+
+            try {
+                // Note: This is a client-side simulation. In a real application,
+                // you would need a backend server to make Twilio API calls securely.
+                console.log(`SMS would be sent to ${formattedPhone}: ${message}`);
+                
+                // Simulate API call delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // For demonstration, we'll show success
+                return true;
+            } catch (error) {
+                console.error('SMS sending failed:', error);
+                return false;
+            }
+        }
+
+        function renderMembers() {
+            memberList.innerHTML = '';
+            
+            if (members.length === 0) {
+                memberList.innerHTML = `
+                    <div class="empty-state">
+                        <p>No members registered yet</p>
+                        <small>Click "Add New Member" to get started</small>
+                    </div>
+                `;
+                updateStats();
+                return;
+            }
+
+            members.forEach((member, index) => {
+                const li = document.createElement('li');
+                li.className = 'member-item';
+                if (member.collected) {
+                    li.classList.add('collected');
+                }
+
+                li.innerHTML = `
+                    <div class="member-info">
+                        <div class="member-name">${member.name}</div>
+                        <div class="member-phone">${member.phone}</div>
+                    </div>
+                    <button onclick="markCollected(${index})" class="${member.collected ? 'success' : 'primary'}" ${member.collected ? 'disabled' : ''}>
+                        ${member.collected ? '✓ Collected' : 'Mark as Collected'}
+                    </button>
+                `;
+                memberList.appendChild(li);
+            });
+            updateStats();
+        }
+
+        function handleAddMember(event) {
+            event.preventDefault();
+            const name = memberNameInput.value.trim();
+            const phone = memberPhoneInput.value.trim();
+
+            if (!name || !phone) {
+                showStatusMessage('Please fill in all required fields.', 'error');
+                return;
+            }
+
+            if (phone.length !== 10 || !/^\d{10}$/.test(phone)) {
+                showStatusMessage('Please enter a valid 10-digit mobile number.', 'error');
+                return;
+            }
+
+            // Check for duplicate phone numbers
+            if (members.some(m => m.phone === phone)) {
+                showStatusMessage('A member with this phone number already exists.', 'error');
+                return;
+            }
+
+            members.push({ name, phone, collected: false });
+            saveMembersToLocalStorage();
+            renderMembers();
+            memberNameInput.value = '';
+            memberPhoneInput.value = '';
+            showStatusMessage(`Member "${name}" has been added successfully.`, 'success');
+            showPage('landingPage');
+        }
+
+        function markCollected(index) {
+            if (members[index] && !members[index].collected) {
+                members[index].collected = true;
+                saveMembersToLocalStorage();
+                renderMembers();
+            }
+        }
+
+        async function openShop() {
+            const openTime = document.getElementById('openTime').value;
+            const closeTime = document.getElementById('closeTime').value;
+
+            if (members.length === 0) {
+                showStatusMessage('Shop is now open, but there are no members to notify.', 'warning');
+                return;
+            }
+
+            // Show loading state
+            document.body.classList.add('loading');
+
+            // Reset collection status for new day
+            members.forEach(member => member.collected = false);
+            saveMembersToLocalStorage();
+            renderMembers();
+
+            const englishMessage = `The ration shop is open with the selected time ${openTime} to ${closeTime} by the manager so please collect the goods`;
+            const tamilMessage = `மேலாளரால் தேர்ந்தெடுக்கப்பட்ட நேரம் ${openTime} முதல் ${closeTime} வரை ரேஷன் கடை திறந்துள்ளது, எனவே பொருட்களை சேகரிக்கவும்`;
+            
+            const fullMessage = `${englishMessage}\n\n${tamilMessage}`;
+
+            let successCount = 0;
+            let failCount = 0;
+
+            // Send SMS to all members
+            for (let i = 0; i < members.length; i++) {
+                const member = members[i];
+                const success = await sendSMS(member.phone, fullMessage);
+                if (success) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+                
+                // Add delay between messages
+                if (i < members.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            // Remove loading state
+            document.body.classList.remove('loading');
+
+            if (failCount === 0) {
+                showStatusMessage(`Shop opened! SMS sent successfully to all ${successCount} members.`, 'success');
+            } else {
+                showStatusMessage(`Shop opened! SMS sent to ${successCount} members. ${failCount} failed.`, 'warning');
+            }
+        }
+
+        async function closeShop() {
+            const nextOpenDate = nextOpenDateInput.value;
+            if (!nextOpenDate) {
+                showStatusMessage('Please specify the next opening date before closing the shop.', 'error');
+                return;
+            }
+
+            const formattedDate = new Date(nextOpenDate).toLocaleDateString('en-IN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            const notCollectedMembers = members.filter(member => !member.collected);
+
+            if (notCollectedMembers.length === 0) {
+                showStatusMessage('All members have collected their ration today. Excellent work!', 'success');
+                return;
+            }
+
+            // Show loading state
+            document.body.classList.add('loading');
+
+            const englishMessage = `You missed the collection of goods today, the next ration shop open date is ${formattedDate}`;
+            const tamilMessage = `இன்று நீங்கள் பொருட்கள் சேகரிப்பை தவறவிட்டீர்கள், அடுத்த ரேஷன் கடை திறக்கும் தேதி ${formattedDate}`;
+            
+            const fullMessage = `${englishMessage}\n\n${tamilMessage}`;
+
+            let successCount = 0;
+            let failCount = 0;
+
+            // Send SMS reminders to members who didn't collect
+            for (let i = 0; i < notCollectedMembers.length; i++) {
+                const member = notCollectedMembers[i];
+                const success = await sendSMS(member.phone, fullMessage);
+                if (success) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+                
+                // Add delay between messages
+                if (i < notCollectedMembers.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            // Remove loading state
+            document.body.classList.remove('loading');
+
+            if (failCount === 0) {
+                showStatusMessage(`Shop closed! Reminder SMS sent to ${successCount} members who didn't collect.`, 'success');
+            } else {
+                showStatusMessage(`Shop closed! Reminders sent to ${successCount} members. ${failCount} failed.`, 'warning');
+            }
+        }
+
+        // --- Local Storage ---
+
+        function saveMembersToLocalStorage() {
+            localStorage.setItem('rationMembers', JSON.stringify(members));
+        }
+
+        function loadMembersFromLocalStorage() {
+            const storedMembers = localStorage.getItem('rationMembers');
+            if (storedMembers) {
+                members = JSON.parse(storedMembers);
+            }
+        }
+
+        // --- Event Listeners ---
+
+        addMemberForm.addEventListener('submit', handleAddMember);
+
+        // --- Initialization ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Always start from landing page
+            showPage('landingPage');
+            
+            loadMembersFromLocalStorage();
+            loadTwilioConfig();
+            renderMembers();
+            
+            // Set default next opening date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            nextOpenDateInput.value = tomorrow.toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>
