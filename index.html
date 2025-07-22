@@ -164,10 +164,7 @@
         @media print {
             body * { visibility: hidden; }
             #print-area, #print-area * { visibility: visible; }
-            #print-area {
-                position: absolute; left: 0; top: 0; width: 100%;
-                padding: 2rem; color: #000;
-            }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 2rem; color: #000; }
             #print-area h2, #print-area h3 { text-align: center; margin-bottom: 1rem; color: #000; }
             #print-area table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
             #print-area th, #print-area td { border: 1px solid #ccc; padding: 8px; text-align: left; }
@@ -196,15 +193,9 @@
 
         <main class="container">
             <div class="section" id="dashboard">
-                <div class="stat-item" id="stats-total">
-                    <div class="value">0</div><div class="label">Total Members</div>
-                </div>
-                <div class="stat-item" id="stats-collected">
-                    <div class="value">0</div><div class="label">Collected Today</div>
-                </div>
-                <div class="stat-item" id="stats-pending">
-                    <div class="value">0</div><div class="label">Pending</div>
-                </div>
+                <div class="stat-item" id="stats-total"><div class="value">0</div><div class="label">Total Members</div></div>
+                <div class="stat-item" id="stats-collected"><div class="value">0</div><div class="label">Collected Today</div></div>
+                <div class="stat-item" id="stats-pending"><div class="value">0</div><div class="label">Pending</div></div>
                 <button id="print-report-btn">Print Daily Report</button>
             </div>
 
@@ -349,6 +340,10 @@
                 updateDashboard();
             };
 
+            const closeModal = () => {
+                DOM.memberModal.classList.add('hidden');
+            };
+
             const saveMember = () => {
                 const id = parseInt(DOM.memberIdInput.value);
                 const name = DOM.memberNameInput.value.trim();
@@ -361,8 +356,13 @@
                     const newId = members.length > 0 ? Math.max(...members.map(m => m.id)) + 1 : 101;
                     members.push({ id: newId, name, phone, collected: false });
                 }
+                
                 saveMembersToLocalStorage(members);
                 closeModal();
+
+                // After saving, clear the search bar to ensure the new member is visible.
+                DOM.memberSearchInput.value = '';
+                
                 renderMembers();
             };
 
@@ -397,21 +397,11 @@
             };
             
             const handlePrintReport = () => {
-                const printArea = document.createElement('div');
-                printArea.id = 'print-area';
+                const printArea = document.createElement('div'); printArea.id = 'print-area';
                 let tableRows = '';
-                members.forEach(m => {
-                    tableRows += `<tr><td>${m.id}</td><td>${m.name}</td><td>${m.collected ? 'Collected' : 'Not Collected'}</td></tr>`;
-                });
+                members.forEach(m => { tableRows += `<tr><td>${m.id}</td><td>${m.name}</td><td>${m.collected ? 'Collected' : 'Not Collected'}</td></tr>`; });
                 const reportDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric'});
-                printArea.innerHTML = `
-                    <h2>Daily Ration Distribution Report</h2>
-                    <h3>Date: ${reportDate}</h3>
-                    <table>
-                        <thead><tr><th>Member ID</th><th>Name</th><th>Status</th></tr></thead>
-                        <tbody>${tableRows}</tbody>
-                    </table>
-                `;
+                printArea.innerHTML = `<h2>Daily Ration Distribution Report</h2><h3>Date: ${reportDate}</h3><table><thead><tr><th>Member ID</th><th>Name</th><th>Status</th></tr></thead><tbody>${tableRows}</tbody></table>`;
                 document.body.appendChild(printArea);
                 window.print();
                 document.body.removeChild(printArea);
@@ -444,25 +434,22 @@
                 DOM.memberModal.classList.remove('hidden');
             };
             
-            // --- EVENT LISTENERS ---
             DOM.loginBtn.addEventListener('click', handleLogin);
             DOM.logoutBtn.addEventListener('click', handleLogout);
             DOM.addMemberBtn.addEventListener('click', () => openModal());
-            DOM.closeModalBtn.addEventListener('click', () => DOM.memberModal.classList.add('hidden'));
+            DOM.closeModalBtn.addEventListener('click', closeModal);
             DOM.saveMemberBtn.addEventListener('click', saveMember);
             DOM.sendOpenNotificationBtn.addEventListener('click', sendOpenNotification);
             DOM.closeShopBtn.addEventListener('click', sendCloseNotification);
             DOM.addProductBtn.addEventListener('click', handleAddProduct);
             DOM.memberSearchInput.addEventListener('input', renderMembers);
             DOM.printReportBtn.addEventListener('click', handlePrintReport);
-
             DOM.productsList.addEventListener('click', (e) => {
                 if (e.target.classList.contains('remove-product-btn')) {
                     todaysProducts.splice(e.target.dataset.index, 1);
                     renderProducts();
                 }
             });
-            
             DOM.membersTableBody.addEventListener('click', (e) => {
                 const target = e.target.closest('button[data-id]');
                 if (!target) return;
@@ -475,7 +462,8 @@
                 } else if (target.classList.contains('delete-btn')) {
                     if (confirm('Are you sure you want to delete this member?')) {
                         members = members.filter(m => m.id !== id);
-                        saveMembersToLocalStorage(members); renderMembers();
+                        saveMembersToLocalStorage(members);
+                        renderMembers();
                     }
                 }
             });
