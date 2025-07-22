@@ -22,7 +22,26 @@
         body {
             font-family: 'Poppins', sans-serif; background-color: var(--light-gray);
             color: var(--text-color);
+            position: relative; /* Needed for the z-index of the pseudo-element */
         }
+        
+        /* NEW -- BACKGROUND LOGO STYLE */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('l.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: contain;
+            opacity: 0.15; /* Low opacity for watermark effect */
+            z-index: -1; /* Places the background behind the content */
+        }
+        /* END -- BACKGROUND LOGO STYLE */
+
         .container {
             background-color: var(--white); padding: 1.5rem;
             width: 100%; max-width: 950px; margin: 2rem auto;
@@ -132,7 +151,6 @@
         }
         .hidden { display: none !important; }
 
-        /* NEW DASHBOARD STYLES */
         #dashboard { display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 1rem; text-align: center; }
         .stat-item { padding: 1rem; flex-grow: 1;}
         .stat-item .value { font-size: 2rem; font-weight: 700; }
@@ -148,7 +166,6 @@
             .container { margin: 0 auto; border-radius: 0; padding: 1rem;}
         }
 
-        /* NEW PRINT STYLES */
         @media print {
             body * { visibility: hidden; }
             #print-area, #print-area * { visibility: visible; }
@@ -185,16 +202,13 @@
         <main class="container">
             <div class="section" id="dashboard">
                 <div class="stat-item" id="stats-total">
-                    <div class="value">0</div>
-                    <div class="label">Total Members</div>
+                    <div class="value">0</div><div class="label">Total Members</div>
                 </div>
                 <div class="stat-item" id="stats-collected">
-                    <div class="value">0</div>
-                    <div class="label">Collected Today</div>
+                    <div class="value">0</div><div class="label">Collected Today</div>
                 </div>
                 <div class="stat-item" id="stats-pending">
-                    <div class="value">0</div>
-                    <div class="label">Pending</div>
+                    <div class="value">0</div><div class="label">Pending</div>
                 </div>
                 <button id="print-report-btn">Print Daily Report</button>
             </div>
@@ -296,10 +310,9 @@
             const updateDashboard = () => {
                 const total = members.length;
                 const collected = members.filter(m => m.collected).length;
-                const pending = total - collected;
                 DOM.statsTotal.textContent = total;
                 DOM.statsCollected.textContent = collected;
-                DOM.statsPending.textContent = pending;
+                DOM.statsPending.textContent = total - collected;
             };
             
             const renderProducts = () => {
@@ -327,7 +340,6 @@
                     member.name.toLowerCase().includes(searchTerm) ||
                     member.id.toString().includes(searchTerm)
                 );
-
                 DOM.membersTableBody.innerHTML = '';
                 if (filteredMembers.length === 0) {
                      DOM.membersTableBody.innerHTML = `<tr id="no-members-row"><td colspan="5">No members found.</td></tr>`;
@@ -477,15 +489,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
